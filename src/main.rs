@@ -46,15 +46,5 @@ fn main() -> Result<()> {
 
     println!("{:?}", branch_names);
 
-    // let branch_errors  = branches_result.filter_map(|res| res.err());
-
-    // // TODO: find a better way to handle these seemingly unlikely errors
-    // branch_errors.for_each(|err| println!("There was an error processing a branch: {:?}", err));
-
-    // branches_result.for_each(|result| match result {
-    //     Ok((branch, _)) => println!("{:?}", branch.name()),
-    //     Err(err) => println!("ERROR: {:?}", err),
-    // });
-
     Ok(())
 }
