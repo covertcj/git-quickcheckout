@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyModifiers},
     execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -15,7 +15,7 @@ use tui::{
     layout::{Constraint, Direction, Layout},
     style::Style,
     text::{Span, Spans},
-    widgets::{Block, Borders, List, ListItem},
+    widgets::{Block, Borders, List, ListItem, Paragraph},
     Terminal,
 };
 
@@ -91,10 +91,23 @@ fn main() -> Result<()> {
 
     loop {
         if let Event::Key(key) = event::read()? {
-            if let KeyCode::Char('q') = key.code {
-                break;
+            match (key.code, key.modifiers) {
+                (KeyCode::Esc, _) => break,
+                (KeyCode::Char('c'), KeyModifiers::CONTROL)
+                | (KeyCode::Char('d'), KeyModifiers::CONTROL) => break,
+                (KeyCode::Char(c), _) => {
+                    app.input.push(c);
+                }
+                (KeyCode::Backspace, _) => {
+                    app.input.pop();
+                }
+                _ => {
+                    if let Some(entries) = &mut app.entries {
+                        entries.push(format!("{:?}", key))
+                    }
+                }
             }
-        }
+        };
 
         terminal.draw(|f| {
             let chunks = Layout::default()
@@ -116,9 +129,10 @@ fn main() -> Result<()> {
             let branches_list = List::new(branch_items).block(branches_block);
 
             let search_block = Block::default().title("Search").borders(Borders::ALL);
+            let search_par = Paragraph::new(app.input.as_str()).block(search_block);
 
             f.render_widget(branches_list, chunks[0]);
-            f.render_widget(search_block, chunks[1]);
+            f.render_widget(search_par, chunks[1]);
         })?;
     }
 
